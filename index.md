@@ -2,9 +2,6 @@
 layout: default
 ---
 
-Rustless framework
-======
-
 ## What is Rustless?
 
 Rustless is a REST-like API micro-framework for Rust. It's designed to provide a simple DSL to easily develop RESTful APIs. It has built-in support for common conventions, including multiple formats, subdomain/prefix restriction, content negotiation, versioning and much more.
@@ -84,7 +81,7 @@ Endpoint and Namespace definition. See [Valico] for more info.
 ## Query strings
 
 Rustless is intergated with [rust-query] to allow smart query-string parsing 
-(e.g. like `"foo[0][a]=a&foo[0][b]=b&foo[1][a]=aa&foo[1][b]=bb"`). See [rust-query] for more info.
+(e.g. like `foo[0][a]=a&foo[0][b]=b&foo[1][a]=aa&foo[1][b]=bb`). See [rust-query] for more info.
 
 [rust-query]: https://github.com/rustless/rust-query
 
