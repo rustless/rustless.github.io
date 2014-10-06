@@ -1,0 +1,13 @@
+# Site settings
+title: Rustless
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "http://rustless.org" # the base hostname & protocol for your site
+github_username:  rustless
+
+# Build settings
+markdown: redcarpet
+redcarpet:
+  extensions: ["fenced_code_blocks"]
+
+gems:
+  - jekyll-sitemap
