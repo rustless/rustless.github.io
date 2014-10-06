@@ -6,10 +6,11 @@ layout: default
 
 Rustless is a REST-like API micro-framework for Rust. It's designed to provide a simple DSL to easily develop RESTful APIs. It has built-in support for common conventions, including multiple formats, subdomain/prefix restriction, content negotiation, versioning and much more.
 
-Rustless in a port of Grape library from Ruby world and is still mostly **in progress** (that mean that API and features in
-**experimental** in Rust's terms).
+Rustless in a port of [Grape] library from Ruby world and is still mostly **in progress** (that mean that API and features in
+**experimental** in Rust's terms). Based on [hyper] - an HTTP library for Rust.
 
-[Grape]: https://raw.githubusercontent.com/intridea/grape
+[Grape]: https://github.com/intridea/grape
+[hyper]: https://github.com/hyperium/hyper
 
 ## Basic Usage
 
