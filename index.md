@@ -6,11 +6,15 @@ layout: default
 
 Rustless is a REST-like API micro-framework for Rust. It's designed to provide a simple DSL to easily develop RESTful APIs. It has built-in support for common conventions, including multiple formats, subdomain/prefix restriction, content negotiation, versioning and much more.
 
-Rustless in a port of [Grape] library from Ruby world and is still mostly **in progress** (that mean that API and features in
-**experimental** in Rust's terms). Based on [hyper] - an HTTP library for Rust.
+Rustless in a port of [Grape] library from Ruby world. Based on [hyper] - an HTTP library for Rust.
+
+Like Rust itself, Rustless is still in the early stages of development, so don't be surprised if APIs change and things break. If something's not working properly, file an issue or submit a pull request! 
 
 [Grape]: https://github.com/intridea/grape
 [hyper]: https://github.com/hyperium/hyper
+
+## Status
+[![Build Status](https://travis-ci.org/rustless/rustless.svg?branch=master)](https://travis-ci.org/rustless/rustless)
 
 ## Basic Usage
 
@@ -22,24 +26,31 @@ Below is a simple example showing some of the more common features of Rustless.
 #[phase(plugin)]
 extern crate rustless;
 extern crate rustless;
+extern crate hyper;
 extern crate serialize;
 
 use std::io::net::ip::Ipv4Addr;
-use serialize::json::Json;
+use serialize::json::{JsonObject, ToJson};
 use rustless::{
-    Rustless, Application, Valico, Api, Client, NS, 
-    PathVersioning, AcceptHeaderVersioning, HandleResult
+    Server, Application, Valico, Api, Client, Nesting, 
+    HandleResult, HandleSuccessResult, AcceptHeaderVersioning
 };
 
 fn main() {
 
     let api = box Api::build(|api| {
-        // Specify API version and versioning strategy
+        // Specify API version
         api.version("v1", AcceptHeaderVersioning("chat"));
         api.prefix("api");
 
         // Create API for chats
         let chats_api = box Api::build(|chats_api| {
+
+            chats_api.after(callback!(|client, _params| {
+                client.set_status(hyper::status::NotFound);
+                Ok(())
+            }));
+
             // Add namespace
             chats_api.namespace("chats/:id", |chat_ns| {
                 
@@ -63,7 +74,7 @@ fn main() {
                     // Set-up handler for endpoint, note that we return
                     // of macro invocation.
                     edp_handler!(endpoint, |client, params| {
-                        client.json(params)
+                        client.json(&params.to_json())
                     })
                 });
 
@@ -76,8 +87,8 @@ fn main() {
     let mut app = Application::new();
     app.mount(api);
 
-    let rustless: Rustless = Rustless;
-    rustless.listen(
+    let server: Server = Server;
+    server.listen(
         app,
         Ipv4Addr(127, 0, 0, 1),
         3000
@@ -87,9 +98,63 @@ fn main() {
 }
 ~~~
 
+## Mounting
+
+In Rustless you can use three core entities to build your RESTful app: `Api`, `Namespace` and `Endpoint`. 
+
+* Api can mount Api, Namespace and Endpoint
+* Namespace can mount Api, Namespace and Endpoint
+
+~~~rust
+Api::build(|api| {
+
+    // Api inside Api example
+    api.mount(box Api::build(|nested_api| {
+
+        // Endpoint definition
+        nested_api.get("nested_info", |endpoint| {
+            // endpoint.params(|params| {});
+            // endpoint.desc("Some description");
+
+            // Endpoint handler
+            edp_handler!(endpoint, |client, _params| {
+                client.text("Some usefull info".to_string())
+            })
+        });
+
+    }))
+
+    // The namespace method has a number of aliases, including: group, 
+    // resource, resources, and segment. Use whichever reads the best 
+    // for your API.
+    api.namespace("ns1", |ns1| {
+        ns1.group("ns2", |ns2| {
+            ns2.resource("ns3", |ns3| {
+                ns3.resources("ns4", |ns4| {
+                    ns4.segment("ns5", |ns5| {
+                        // ...
+                    );
+                })
+            })
+        })
+    })
+})
+~~~
+
 ## Parameter Validation and Coercion
 
-You can define validations and coercion options for your parameters using a DSL block in Endpoint and Namespace definition. See [Valico] for more info about things you can do.
+You can define validations and coercion options for your parameters using a DSL block inside `Endpoint` and `Namespace` definition. See [Valico] for more info about things you can do.
+
+~~~rust 
+api.get("users/:user_id/messages/:message_id", |endpoint| {
+    endpoint.params(|params| {
+        params.req_typed("user_id", Valico::u64());
+        params.req_typed("message_id", Valico::u64());
+    });
+
+    // ...
+})
+~~~
 
 [Valico]: https://github.com/rustless/valico
 
@@ -100,15 +165,15 @@ end decoding (even with nesting, like `foo[0][a]=a&foo[0][b]=b&foo[1][a]=aa&foo[
 
 [rust-query]: https://github.com/rustless/rust-query
 
-## Versioning
+## API versioning
 
 There are three strategies in which clients can reach your API's endpoints: 
 
-    * PathVersioning
-    * AcceptHeaderVersioning
-    * ParamVersioning
+* PathVersioning
+* AcceptHeaderVersioning
+* ParamVersioning
 
-### Path
+### Path versioning strategy
 
 ~~~rust
 api.version("v1", PathVersioning);
@@ -118,7 +183,7 @@ Using this versioning strategy, clients should pass the desired version in the U
 
     curl -H http://localhost:3000/v1/chats/
 
-### Header
+### Header versioning strategy
 
 ~~~rust
 api.version("v1", AcceptHeaderVersioning("chat"));
@@ -130,7 +195,7 @@ Using this versioning strategy, clients should pass the desired version in the H
 
 Accept version format is the same as Github (uses)[https://developer.github.com/v3/media/].
 
-### Param
+### Param versioning strategy
 
 ~~~rust
 api.version("v1", ParamVersioning("ver"));
@@ -140,7 +205,7 @@ Using this versioning strategy, clients should pass the desired version as a req
 
     curl -H http://localhost:9292/statuses/public_timeline?ver=v1
 
-## HTTP Status Code
+## Respond with custom HTTP Status Code
 
 By default Rustless returns a 200 status code for `GET`-Requests and 201 for `POST`-Requests. You can use `status` and `set_status` to query and set the actual HTTP Status Code
 
@@ -148,9 +213,9 @@ By default Rustless returns a 200 status code for `GET`-Requests and 201 for `PO
 client.set_status(NotFound);
 ~~~
 
-## Parameters
+## Use parameters
 
-Request parameters are available through the `params` struct. This includes `GET`, `POST` and `PUT` parameters, along with any named parameters you specify in your route strings.
+Request parameters are available through the `params: JsonObject` inside `Endpoint` handlers and all callbacks. This includes `GET`, `POST` and `PUT` parameters, along with any named parameters you specify in your route strings.
 
 The request:
 
@@ -188,15 +253,52 @@ client.redirect("http://google.com");
 client.redirect_permanent("http://google.com");
 ~~~
 
-## Raising Exceptions
+## Error firing
 
 You can abort the execution of an API method by raising errors with `error`.
 
+Define your error like this:
+
 ~~~rust
-client.error(CustomError);
+use rustless::errors::{Error, ErrorRefExt};
+
+#[deriving(Show)]
+pub struct UnauthorizedError;
+
+impl Error for UnauthorizedError {
+    fn name(&self) -> &'static str {
+        return "UnauthorizedError";
+    }
+}
 ~~~
 
-## Before and After
+And then throw:
+
+~~~rust
+client.error(UnauthorizedError);
+~~~
+
+## Error handling
+
+By default Rustless wil respond all errors with status::InternalServerError.
+
+Rustless can be told to rescue specific errors and return them in the custom API format.
+
+~~~rust
+format_error!(api, UnauthorizedError, |_err, _media| {
+    Some(Response::from_string(status::Unauthorized, "Please provide correct `token` parameter".to_string()))
+});
+~~~
+
+Also Rustless can be told to rescue all errors:
+
+~~~rust
+format_error!(api, all, |_err, _media| {
+    Some(Response::from_string(status::InternalServerError, "Not enough mana!".to_string()))
+});
+~~~
+
+## Before and After callbacks
 
 Blocks can be executed before or after every API call, using `before`, `after`,
 `before_validation` and `after_validation`.
@@ -212,13 +314,44 @@ Before and after callbacks execute in the following order:
 
 Steps 4, 5 and 6 only happen if validation succeeds.
 
-E.g. using `after`:
+The block applies to every API call within and below the current nesting level.
+
+## Secure API example
 
 ~~~rust
-chats_api.after(callback!(|client| {
-    client.set_status(NotFound);
-    Ok(())
-}));
-~~~
+Api::build(|api| {
+    api.prefix("api");
 
-The block applies to every API call within and below the current nesting level.
+    format_error!(api, UnauthorizedError, |_err, _media| {
+        Some(Response::from_string(status::Unauthorized, "Please provide correct `token` parameter".to_string()))
+    });
+
+    api.namespace("admin", |admin_ns| {
+
+        admin_ns.params(|params| {
+            params.req_typed("token", Valico::string())
+        });
+
+        // Using after_validation callback to check token
+        admin_ns.after_validation(callback!(|_client, params| {
+            
+            match params.find(&"token".to_string()) {
+                // We can unwrap() safely because token in validated already
+                Some(token) => if token.as_string().unwrap().as_slice() == "password1" { return Ok(()) },
+                None => ()
+            }
+
+            // Fire error from callback is token is wrong
+            return Err(UnauthorizedError.erase())
+
+        }));
+
+        // This `/api/admin/server_status` endpoint is secure now
+        admin_ns.get("server_status", |endpoint| {
+            edp_handler!(endpoint, |client, _params| {
+                client.text("Everything is OK".to_string())  
+            })
+        });
+    })
+})
+~~~
