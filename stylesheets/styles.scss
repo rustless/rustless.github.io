@@ -151,7 +151,7 @@ h3 {
 }
 
 a {
-  color:#ffcc00;
+  color:#ebbc00;
   font-weight:400;
   text-decoration:none;
 
@@ -188,7 +188,7 @@ section img {
 }
 
 blockquote {
-  border-left:3px solid #ffcc00;
+  border-left:3px solid #ebbc00;
   margin:0;
   padding:0 0 0 20px;
   font-style:italic;
@@ -308,6 +308,7 @@ dt {
       &.fork {
         float: left;
         margin-left: 0px;
+        margin-right: 10px;
       }
 
       &.downloads {

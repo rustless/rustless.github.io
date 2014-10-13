@@ -4,6 +4,8 @@ layout: default
 
 ## What is Rustless?
 
+[![Build Status](https://travis-ci.org/rustless/rustless.svg?branch=master)](https://travis-ci.org/rustless/rustless)
+
 Rustless is a REST-like API micro-framework for Rust. It's designed to provide a simple DSL to easily develop RESTful APIs. It has built-in support for common conventions, including multiple formats, subdomain/prefix restriction, content negotiation, versioning and much more.
 
 Rustless in a port of [Grape] library from Ruby world. Based on [hyper] - an HTTP library for Rust.
@@ -13,8 +15,13 @@ Like Rust itself, Rustless is still in the early stages of development, so don't
 [Grape]: https://github.com/intridea/grape
 [hyper]: https://github.com/hyperium/hyper
 
-## Status
-[![Build Status](https://travis-ci.org/rustless/rustless.svg?branch=master)](https://travis-ci.org/rustless/rustless)
+```toml
+# Cargo.toml
+[dependencies.rustless]
+git = "https://github.com/rustless/rustless"
+```
+
+[API docs](http://rustless.org/rustless/doc/rustless)
 
 ## Basic Usage
 
@@ -160,10 +167,10 @@ api.get("users/:user_id/messages/:message_id", |endpoint| {
 
 ## Query strings
 
-Rustless is intergated with [rust-query] to allow smart query-string parsing 
-end decoding (even with nesting, like `foo[0][a]=a&foo[0][b]=b&foo[1][a]=aa&foo[1][b]=bb`). See [rust-query] for more info.
+Rustless is intergated with [queryst] to allow smart query-string parsing 
+end decoding (even with nesting, like `foo[0][a]=a&foo[0][b]=b&foo[1][a]=aa&foo[1][b]=bb`). See [queryst] for more info.
 
-[rust-query]: https://github.com/rustless/rust-query
+[queryst]: https://github.com/rustless/queryst
 
 ## API versioning
 
@@ -355,3 +362,4 @@ Api::build(|api| {
     })
 })
 ~~~
+
