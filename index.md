@@ -148,7 +148,7 @@ Api::build(|api| {
 })
 ~~~
 
-## Parameter Validation and Coercion
+## Parameters validation and coercion
 
 You can define validations and coercion options for your parameters using a DSL block inside `Endpoint` and `Namespace` definition. See [Valico] for more info about things you can do.
 
@@ -260,7 +260,7 @@ client.redirect("http://google.com");
 client.redirect_permanent("http://google.com");
 ~~~
 
-## Error firing
+## Errors firing
 
 You can abort the execution of an API method by raising errors with `error`.
 
@@ -285,7 +285,7 @@ And then throw:
 client.error(UnauthorizedError);
 ~~~
 
-## Error handling
+## Errors handling
 
 By default Rustless wil respond all errors with status::InternalServerError.
 
@@ -363,3 +363,8 @@ Api::build(|api| {
 })
 ~~~
 
+## JSON responses
+
+Rustless includes [JsonWay](https://github.com/rustless/jsonway) library to offer both complex JSON building DSL and configurable serializers for your objects. See [API docs](http://rustless.org/jsonway/doc/jsonway/) for details.
+
+Also feel free to use any other serialization library you want.
