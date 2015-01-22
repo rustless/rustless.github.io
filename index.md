@@ -2,24 +2,6 @@
 layout: default
 ---
 
-## Table of Contents
-
-- [What is Rustless?](#what-is-rustless)
-- [Basic Usage](#basic-usage)
-- [Mounting](#mounting)
-- [Parameters validation and coercion](#parameters-validation-and-coercion)
-- [Query strings](#query-strings)
-- [API versioning](#api-versioning)
-- [Respond with custom HTTP Status Code](#respond-with-custom-http-status-code)
-- [Use parameters](#use-parameters)
-- [Redirecting](#redirecting)
-- [Errors firing](#errors-firing)
-- [Errors handling](#errors-handling)
-- [Before and After callbacks](#before-and-after-callbacks)
-- [Secure API example](#secure-api-example)
-- [JSON responses](#json-responses)
-- [Swagger 2.0 support](#swagger-20)
-
 ## What is Rustless?
 
 [![Build Status](https://travis-ci.org/rustless/rustless.svg?branch=master)](https://travis-ci.org/rustless/rustless)
